@@ -6,16 +6,14 @@ const productSchema = new mongoose.Schema(
       type: String, 
       required: true 
     },
-    description: { 
-      type: String 
-    },
     price: { 
       type: Number, 
       required: true 
     },
-    stock: { 
+    rating: { 
       type: Number, 
-      required: true 
+      required: true,
+      default: 3
     },
     brand: { 
       type: mongoose.Schema.Types.ObjectId, 
@@ -25,7 +23,16 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId, 
       ref: 'Category' 
     }, // Relasi ke Category
-    images: [{ type: String }], // Array URL gambar
+    isAvailable: {
+      type: Boolean,
+      default: true
+    },
+    description: { 
+      type: String 
+    },
+    directWA: {
+      type: String
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
@@ -34,6 +41,10 @@ const productSchema = new mongoose.Schema(
   },
 )
 
+productSchema.index({ name: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ brand: 1 });
+productSchema.index({ category: 1 });
 
 
 
