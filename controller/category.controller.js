@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Category from "../models/category.model.js";
 
 const getAllCategory = async (req, res) => {
@@ -11,28 +10,28 @@ const getCategoriesWithManySubcategories = async (req, res) => {
   try {
       // Aggregation pipeline untuk menghitung jumlah subkategori
       const result = await Category.aggregate([
-          {
-            $lookup: {
-              from: 'categories', // Nama koleksi yang sama (self-referencing)
-              localField: '_id',
-              foreignField: 'parentCategory',
-              as: 'subcategories',
-            },
+        {
+          $lookup: {
+            from: 'categories', // Nama koleksi yang sama (self-referencing)
+            localField: '_id',
+            foreignField: 'parentCategory',
+            as: 'subcategories',
           },
-          {
-            $project: {
-              name: 1, // Tampilkan nama kategori
-              subcategoryCount: { $size: '$subcategories' }, // Hitung jumlah subkategori
-            },
+        },
+        {
+          $project: {
+            name: 1, // Tampilkan nama kategori
+            subcategoryCount: { $size: '$subcategories' }, // Hitung jumlah subkategori
           },
-          {
-            $match: {
-              subcategoryCount: { $gt: 0 }, // Hanya tampilkan kategori yang memiliki subkategori
-            },
+        },
+        {
+          $match: {
+            subcategoryCount: { $gt: 0 }, // Hanya tampilkan kategori yang memiliki subkategori
           },
-          {
-            $sort: { subcategoryCount: -1 }, // Urutkan berdasarkan jumlah subkategori (terbanyak ke terkecil)
-          },
+        },
+        {
+          $sort: { subcategoryCount: -1 }, // Urutkan berdasarkan jumlah subkategori (terbanyak ke terkecil)
+        },
       ]);
 
       // console.log(result)
@@ -47,29 +46,29 @@ const getCategoriesWithSubcategories = async (req, res) => {
       // Aggregation pipeline untuk mengambil kategori dan subkategorinya
       const result = await Category.aggregate([
           {
-              $lookup: {
-                  from: 'categories', // Nama koleksi yang sama (self-referencing)
-                  localField: '_id',
-                  foreignField: 'parentCategory',
-                  as: 'subcategories',
-              },
+            $lookup: {
+              from: 'categories', // Nama koleksi yang sama (self-referencing)
+              localField: '_id',
+              foreignField: 'parentCategory',
+              as: 'subcategories',
+            },
           },
           {
-              $match: {
-                  subcategories: { $exists: true, $not: { $size: 0 } }, // Hanya kategori yang memiliki subkategori
-              },
+            $match: {
+              subcategories: { $exists: true, $not: { $size: 0 } }, // Hanya kategori yang memiliki subkategori
+            },
           },
           {
-              $project: {
-                  name: 1, // Tampilkan nama kategori
-                  subcategories: {
-                      $map: {
-                          input: '$subcategories',
-                          as: 'sub',
-                          in: '$$sub.name', // Ambil hanya nama subkategori
-                      },
-                  },
+            $project: {
+              name: 1, // Tampilkan nama kategori
+              subcategories: {
+                $map: {
+                  input: '$subcategories',
+                  as: 'sub',
+                  in: '$$sub.name', // Ambil hanya nama subkategori
+                },
               },
+            },
           },
       ]);
 
