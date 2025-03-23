@@ -1,9 +1,15 @@
 import Category from "../models/category.model.js";
 
 const getAllCategory = async (req, res) => {
-  const categories = await Category.find().lean().populate("parentCategory");
+  try {
+    const categories = await Category.find().lean().populate("parentCategory");
+  
+    res.status(200).json(categories);
+  } catch (error) {
+    res.status(500).json(error.message || "Error retrieving category");
+  }
 
-  res.status(200).json({ message: "All Categories", data: categories });
+
 }
 
 const getCategoriesWithManySubcategories = async (req, res) => {
@@ -35,9 +41,9 @@ const getCategoriesWithManySubcategories = async (req, res) => {
       ]);
 
       // console.log(result)
-      res.status(200).json({ message: "Success get Categories with many subcategories:", data: result });
+      res.status(200).json(result);
   } catch (error) {
-      res.status(500).json({ message: "Error retrieving category", error: error.message });
+      res.status(500).json(error.message || "Error retrieving category");
   }
 };
 
@@ -72,9 +78,9 @@ const getCategoriesWithSubcategories = async (req, res) => {
           },
       ]);
 
-      res.status(200).json({ message: "Categories with subcategories:", data: result });
+      res.status(200).json(result);
   } catch (error) {
-      res.status(500).json({ message: "Error categories with subcategories", error: error.message });
+      res.status(500).json(error.message || "Error retrieving category");
   }
 };
 
@@ -85,9 +91,9 @@ const getCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
-    res.status(200).json({ message: "Success get Category", data: category });
+    res.status(200).json(category);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving category", error: error.message });
+    res.status(500).json(error.message || "Error retrieving category");
   }
 }
 
@@ -95,9 +101,9 @@ const createCategory = async (req, res) => {
   try {
     const { name, parentCategory } = req.body;
     const newCategory = await Category.create({ name, parentCategory: parentCategory || null });
-    res.status(200).json({ message: "Success Add Category", data: newCategory });
+    res.status(200).json(newCategory);
   } catch (error) {
-    res.status(500).json({ message: "Error adding category", error: error.message });
+    res.status(500).json(error.message);
   }
 }
 
@@ -115,10 +121,7 @@ const deleteCategory = async (req, res) => {
   }
 
   // Send response to the client
-  res.status(200).json({
-    message: "Success Delete Category",
-    data: category
-  });
+  res.status(200).json(category);
 }
 
 
