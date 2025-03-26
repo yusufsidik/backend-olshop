@@ -107,6 +107,22 @@ const createCategory = async (req, res) => {
   }
 }
 
+const editCategory = async (req, res) => {
+  try {
+    const { _id, name, parentCategory } = req.body;
+    const category = await Category.findById(_id);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+    category.name = name;
+    category.parentCategory = parentCategory || null;
+    const updatedCategory = await category.save();
+    res.status(200).json(updatedCategory);
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+}
+
 
 const deleteCategory = async (req, res) => {
   // Delete the category by ID
@@ -125,4 +141,4 @@ const deleteCategory = async (req, res) => {
 }
 
 
-export { getAllCategory, getCategory, createCategory, deleteCategory, getCategoriesWithManySubcategories, getCategoriesWithSubcategories }
+export { getAllCategory, getCategory, createCategory, deleteCategory, getCategoriesWithManySubcategories, getCategoriesWithSubcategories, editCategory }
