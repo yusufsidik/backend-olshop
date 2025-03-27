@@ -1,9 +1,8 @@
 import Category from "../models/category.model.js";
 
-const getAllCategory = async (req, res) => {
+export const getAllCategory = async (req, res) => {
   try {
     const categories = await Category.find().lean().populate("parentCategory");
-  
     res.status(200).json(categories);
   } catch (error) {
     res.status(500).json(error.message || "Error retrieving category");
@@ -12,7 +11,7 @@ const getAllCategory = async (req, res) => {
 
 }
 
-const getCategoriesWithManySubcategories = async (req, res) => {
+export const getCategoriesWithManySubcategories = async (req, res) => {
   try {
       // Aggregation pipeline untuk menghitung jumlah subkategori
       const result = await Category.aggregate([
@@ -47,7 +46,7 @@ const getCategoriesWithManySubcategories = async (req, res) => {
   }
 };
 
-const getCategoriesWithSubcategories = async (req, res) => {
+export const getCategoriesWithSubcategories = async (req, res) => {
   try {
       // Aggregation pipeline untuk mengambil kategori dan subkategorinya
       const result = await Category.aggregate([
@@ -60,24 +59,27 @@ const getCategoriesWithSubcategories = async (req, res) => {
             },
           },
           {
-            $match: {
-              subcategories: { $exists: true, $not: { $size: 0 } }, // Hanya kategori yang memiliki subkategori
-            },
-          },
-          {
             $project: {
               name: 1, // Tampilkan nama kategori
               subcategories: {
-                $map: {
-                  input: '$subcategories',
-                  as: 'sub',
-                  in: '$$sub.name', // Ambil hanya nama subkategori
-                },
+                $ifNull: [
+                  {
+                    $map: {
+                      input: '$subcategories',
+                      as: 'sub',
+                      in: '$$sub.name', // Ambil hanya nama subkategori
+                    },
+                  },
+                  [],
+                ],
               },
             },
           },
+          {
+            $sort: { subcategories: -1 }, // Urutkan berdasarkan jumlah subkategori (terbanyak ke terkecil)
+          }
       ]);
-
+      // console.log(result)
       res.status(200).json(result);
   } catch (error) {
       res.status(500).json(error.message || "Error retrieving category");
@@ -85,7 +87,7 @@ const getCategoriesWithSubcategories = async (req, res) => {
 };
 
 
-const getCategory = async (req, res) => {
+export const getCategory = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id).populate("parentCategory").lean();
     if (!category) {
@@ -97,7 +99,7 @@ const getCategory = async (req, res) => {
   }
 }
 
-const createCategory = async (req, res) => {
+export const createCategory = async (req, res) => {
   try {
     const { name, parentCategory } = req.body;
     const newCategory = await Category.create({ name, parentCategory: parentCategory || null });
@@ -107,7 +109,7 @@ const createCategory = async (req, res) => {
   }
 }
 
-const editCategory = async (req, res) => {
+export const editCategory = async (req, res) => {
   try {
     const { _id, name, parentCategory } = req.body;
     const category = await Category.findById(_id);
@@ -124,7 +126,7 @@ const editCategory = async (req, res) => {
 }
 
 
-const deleteCategory = async (req, res) => {
+export const deleteCategory = async (req, res) => {
   // Delete the category by ID
   const category = await Category.findByIdAndDelete(req.params.id);
 
@@ -139,6 +141,3 @@ const deleteCategory = async (req, res) => {
   // Send response to the client
   res.status(200).json(category);
 }
-
-
-export { getAllCategory, getCategory, createCategory, deleteCategory, getCategoriesWithManySubcategories, getCategoriesWithSubcategories, editCategory }
